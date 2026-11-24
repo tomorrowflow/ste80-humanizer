@@ -1,5 +1,16 @@
 # Changelog
 
+## 5.0.0
+
+- **Connected sentences by default.** In Humanize mode, S1 keeps the reason, condition or result of a statement in the same sentence, and S2 allows descriptions up to about 35 words when commas and clauses carry the structure. A row of short sentences no longer counts as the goal. Strict mode keeps the hard limits of 20 and 25 words.
+- **German mode.** The skill detects the language of the text. For German, it reads the new `references/german.md`, which adapts §1, §7, §8, §10, §21, S1, S6 to S10, S12 and S15 and adds German tells. It keeps Perfekt, separable verbs, modal particles, „…“ quotes and the Gedankenstrich used now and then.
+- `references/german-research.md` holds the research and sources behind the German rules.
+- `scripts/ste_check.py` has a new `--lang auto|en|de` option. It counts words with umlauts correctly, knows German abbreviations and ordinals, and flags German tells. In English, it now also flags a spaced en dash, and its 80% limit for descriptions is 35 words.
+- SKILL.md now gives a target for connected prose: an average of 15 to 20 words per sentence in Humanize mode, also when the user asks for "STE". Step 5 checks for a choppy average and for claims that got stronger.
+- `german.md` now also catches the staged half form "Das ist nicht nur ärgerlich." without a "sondern".
+- The checker flags prose that averages fewer than 12 words per sentence (80% mode only; lists, headings and greetings do not count) and the German half form of §1. It no longer reads "is permanent" as passive.
+- New eval `humanize-german-email`. The sentence-length graders now allow 38 words. New graders check connected prose and that nothing is added. The strict runbook grader now accepts "To do X, do Y" steps.
+
 ## 4.0.0
 
 - SKILL.md is now 217 lines instead of 573, and about 2,650 words instead of 6,250. Pass 1 and Pass 2 are compact tables with one example per group.
