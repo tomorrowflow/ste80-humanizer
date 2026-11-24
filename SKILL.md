@@ -12,7 +12,7 @@ description: |
   English and German.
 license: MIT
 metadata:
-  version: "5.0.0"
+  version: "5.1.0"
   author: "Dodaios"
 ---
 
@@ -94,6 +94,16 @@ Detect the language of the text before you start, and write the result in the sa
 - **English:** the rules in this file.
 - **German:** read `references/german.md` first. It changes §1, §7, §8, §10, §21, S1, S6 to S10, S12 and S15, and it adds German tells and typography rules. Keep German typography, tense use, separable verbs and modal particles.
 - **Other languages:** do Pass 1 and the structure rules of Pass 2 with that language's plain words and typography. Do not translate.
+
+### Voice profile
+
+After you detect the language, look for `~/.claude/voice/<lang>.md` (for example `de.md` or `en.md`). If it exists, read it before Pass 1. A voice profile lists the writer's own habits, each with evidence from their writing. `references/voice-profile.md` has the format.
+
+- **Precedence:** the fidelity rules first, then the profile, then Pass 2, then Pass 1. A writing sample in the request beats the profile for that text.
+- **A habit in the profile is not a tell.** Keep the phrases, words, dashes and sentence length that the profile names, even where Pass 1 or Pass 2 says otherwise.
+- **Apply word, punctuation and address rules inside each paragraph.** Rules marked *rhetorical* (lists, the order of an argument) are suggestions: list them after the rewrite, do not apply them.
+- **Add nothing the profile forbids**, and never invent a habit the profile does not name.
+- Say which profile you used in your list of changes.
 
 ## Pass 1: AI tells
 
@@ -228,4 +238,5 @@ Keep the details that carry the writer's voice: a specific odd detail, mixed fee
 python scripts/ste_check.py draft.md              # Humanize / 80%
 python scripts/ste_check.py --strict runbook.md   # Strict STE
 python scripts/ste_check.py --lang de entwurf.md   # German (default: --lang auto)
+python scripts/ste_check.py --voice none text.md   # ignore ~/.claude/voice/<lang>.md
 ```

@@ -80,6 +80,14 @@ The skill detects the language of the text. For German, it reads [references/ger
 
 The research behind these rules, with sources, is in [references/german-research.md](references/german-research.md).
 
+## Voice profiles
+
+General rules cannot know your habits. Maybe you write "let me know" in every third mail, use " - " as your dash, or write 16 words per sentence on average. Then the tells list is wrong for you.
+
+Put a voice profile at `~/.claude/voice/<lang>.md` (`de.md`, `en.md`). The skill reads it after language detection and keeps what the profile names: your phrases, words, dash and sentence length. The fidelity rules still come first. Rules about the structure of an argument come back as suggestions, never as edits. The checker reads the same file (`--voice auto` is the default, `--voice none` turns it off).
+
+[references/voice-profile.md](references/voice-profile.md) has the format and a template. A profile contains traces of real writing, so keep it private.
+
 ## How to read the skill
 
 [SKILL.md](SKILL.md) has two numbered lists:
@@ -218,6 +226,7 @@ With `--lang de` (or by default, when it detects German), it counts German words
 python scripts/ste_check.py README.md
 python scripts/ste_check.py --strict docs/runbook.md
 python scripts/ste_check.py --lang de docs/einleitung.md
+python scripts/ste_check.py --voice none draft.md   # ignore your voice profile
 cat draft.txt | python scripts/ste_check.py -
 ```
 

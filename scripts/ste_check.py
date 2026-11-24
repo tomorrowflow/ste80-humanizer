@@ -9,6 +9,7 @@ Usage:
     python ste_check.py FILE [FILE ...]
     python ste_check.py --strict FILE
     python ste_check.py --lang de FILE      (default: --lang auto)
+    python ste_check.py --voice ~/.claude/voice/de.md FILE   (default: --voice auto)
     cat draft.txt | python ste_check.py -
     python ste_check.py --json FILE
 
@@ -18,6 +19,7 @@ Exit code: 0 if no findings, 1 if findings, 2 on usage error.
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import re
 import sys
@@ -302,7 +304,20 @@ def sentence_limit(sentence: str, lang: str, strict: bool) -> tuple[int, str]:
     return (25 if strict else 35), "description"
 
 
-def check(text: str, strict: bool, lang: str = "en") -> list[Finding]:
+def check(text: str, strict: bool, lang: str = "en", voice: dict | None = None) -> list[Finding]:
+    """Without a voice profile: the general rules. With one: the writer's own phrases, words and
+    dashes are not tells, and rhythm is measured against the profile."""
+    if not voice:
+        return check_general(text, strict, lang)
+    lines = strip_markdown(text)
+    raw_by_no = dict(enumerate(text.splitlines(), 1))
+    general = check_general(mask_kept(text, voice), strict, lang)
+    own_rules = {"dash"} | ({"rhythm"} if voice.get("sentence_avg") else set())
+    kept = [x for x in general if x.rule not in own_rules]
+    return sorted(kept + voice_findings(text, lines, raw_by_no, lang, voice), key=lambda x: (x.line, x.rule))
+
+
+def check_general(text: str, strict: bool, lang: str = "en") -> list[Finding]:
     f: list[Finding] = []
     lines = strip_markdown(text)
     raw_by_no = dict(enumerate(text.splitlines(), 1))
@@ -378,6 +393,90 @@ def check(text: str, strict: bool, lang: str = "en") -> list[Finding]:
 LIST_OR_HEADING_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)]|#+|\|)\s")
 
 
+def prose_average(lines: list[tuple[int, str]], raw_by_no: dict, lang: str) -> tuple[float, int, int | None]:
+    """Average words per sentence in prose. Lists, headings, tables, greetings and sign-offs do not count."""
+    counts, first = [], None
+    for start, para in paragraphs(lines):
+        if LIST_OR_HEADING_RE.match(raw_by_no.get(start, "")):
+            continue
+        sents = sentences(para, lang)
+        if len(sents) == 1 and count_words(sents[0], lang) <= 4:
+            continue
+        for s in sents:
+            counts.append(count_words(s, lang))
+            first = start if first is None else first
+    return (sum(counts) / len(counts) if counts else 0.0), len(counts), first
+
+
+# --- Voice profile (references/voice-profile.md) ---
+
+VOICE_DIR = os.path.expanduser("~/.claude/voice")
+DASHES = {" - ": r"(?<=[^\s\d])\s-\s(?=[^\s\d])", " – ": r"(?<=[^\s\d])\s–\s(?=[^\s\d])", "—": r"—", " -- ": r"\s--\s"}
+
+
+def load_voice(path: str) -> dict:
+    """Read the `overrides:` block from a profile's front matter. No YAML dependency: flat keys,
+    numbers, quoted strings and [lists] only."""
+    text = open(path, encoding="utf-8").read()
+    m = re.match(r"---\s*\n(.*?)\n---", text, re.S)
+    block = re.search(r"^overrides:[^\n]*\n((?:[ \t]+.*\n?)*)", m.group(1) + "\n", re.M) if m else None
+    voice: dict = {"path": path}
+    for line in (block.group(1).splitlines() if block else []):
+        km = re.match(r"\s+(\w+):\s*(.*?)\s*(?:#.*)?$", line)
+        if not km:
+            continue
+        key, raw = km.groups()
+        if raw.startswith("["):
+            items = re.findall(r'"([^"]*)"|\'([^\']*)\'|([^,\[\]\s][^,\[\]]*)', raw)
+            val = [next(x for x in it if x).strip() for it in items]
+            val = [float(v) if re.fullmatch(r"\d+(?:\.\d+)?", v) else v for v in val]
+        elif re.fullmatch(r"\d+(?:\.\d+)?", raw):
+            val = float(raw)
+        else:
+            val = raw.strip("\"'")
+        voice[key] = val
+    return voice
+
+
+def find_voice(arg: str, lang: str) -> dict | None:
+    if arg == "none":
+        return None
+    path = os.path.join(VOICE_DIR, f"{lang}.md") if arg == "auto" else arg
+    return load_voice(path) if os.path.isfile(path) else None
+
+
+def mask_kept(text: str, voice: dict) -> str:
+    """Hide the writer's own phrases and words from the tell checks. Keeps the word count."""
+    for phrase in sorted(voice.get("keep_phrases", []) + voice.get("keep_words", []), key=len, reverse=True):
+        text = re.sub(rf"(?<!\w){re.escape(phrase)}(?!\w)",
+                      lambda m: " ".join("qq" for _ in m.group(0).split()), text, flags=re.I)
+    return text
+
+
+def voice_findings(text: str, lines: list[tuple[int, str]], raw_by_no: dict, lang: str, voice: dict) -> list[Finding]:
+    f: list[Finding] = []
+    own = voice.get("dash_char")
+    words = max(len(WORD_RE.findall(text)), 1)
+    total = sum(len(re.findall(p, text)) for p in DASHES.values())
+    target = voice.get("dash_per_1k")
+    if target and (words >= 300 or total >= 3) and total * 1000 / words > 1.5 * target:
+        f.append(Finding(1, "dash", f"{total * 1000 / words:.1f} dashes per 1,000 words: your profile writes about {target:g} (§8)", ""))
+    if own:
+        for no, line in lines:
+            for ch, p in DASHES.items():
+                if ch != own and re.search(p, line):
+                    f.append(Finding(no, "dash", f"dash '{ch.strip()}': your profile writes '{own.strip()}' (§8)", line.strip()[:100]))
+    bounds = voice.get("sentence_avg")
+    if isinstance(bounds, list) and len(bounds) == 2:
+        avg, n, first = prose_average(lines, raw_by_no, lang)
+        lo, hi = bounds
+        if n >= 5 and avg < lo - 3:
+            f.append(Finding(first, "rhythm", f"prose averages {avg:.1f} words per sentence: your profile writes {lo:g} to {hi:g}, so join sentences that share a thought", ""))
+        elif n >= 5 and avg > hi + 5:
+            f.append(Finding(first, "rhythm", f"prose averages {avg:.1f} words per sentence: your profile writes {lo:g} to {hi:g}, so split the longest sentences", ""))
+    return f
+
+
 def check_rhythm(lines: list[tuple[int, str]], raw_by_no: dict, lang: str) -> list[Finding]:
     """80% mode: flag prose that is a row of short sentences. Lists, headings and tables do not count."""
     counts, first = [], None
@@ -449,6 +548,8 @@ def main(argv: list[str]) -> int:
     ap.add_argument("files", nargs="+", help="files to check, or - for stdin")
     ap.add_argument("--strict", action="store_true", help="strict mode: exact limits, more word rules")
     ap.add_argument("--lang", choices=["auto", "en", "de"], default="auto", help="text language (default: auto, per file)")
+    ap.add_argument("--voice", default="auto", metavar="PATH|auto|none",
+                    help="voice profile: auto uses ~/.claude/voice/<lang>.md if it exists (default), none ignores it")
     ap.add_argument("--json", action="store_true", help="output JSON")
     args = ap.parse_args(argv)
 
@@ -461,13 +562,16 @@ def main(argv: list[str]) -> int:
             with open(path, encoding="utf-8") as fh:
                 text = fh.read()
         lang = detect_language(text) if args.lang == "auto" else args.lang
-        findings = check(text, args.strict, lang)
+        voice = find_voice(args.voice, lang)
+        findings = check(text, args.strict, lang, voice)
         total += len(findings)
         stats = summary(text, lang)
+        stats["voice"] = voice["path"] if voice else None
         if args.json:
             report.append({"file": path, "stats": stats, "findings": [asdict(x) for x in findings]})
             continue
-        print(f"{path}: {len(findings)} finding(s) | lang {lang} | {stats['sentences']} sentences, "
+        vtag = f" | voice {os.path.basename(voice['path'])}" if voice else ""
+        print(f"{path}: {len(findings)} finding(s) | lang {lang}{vtag} | {stats['sentences']} sentences, "
               f"avg {stats['avg_words_per_sentence']} words, max {stats['max_words_per_sentence']}")
         for x in findings:
             print(f"  {x.line:>4}  {x.rule:<16} {x.message}")

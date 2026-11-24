@@ -1,5 +1,11 @@
 # Changelog
 
+## 5.1.0
+
+- **Voice profiles.** After language detection, the skill reads `~/.claude/voice/<lang>.md` if it exists. A profile records the writer's own habits with evidence. It beats Pass 1 and Pass 2, but never the fidelity rules: a phrase, word, dash or sentence length that the profile names is kept, not treated as a tell. Rhetorical rules come back as suggestions only.
+- New `references/voice-profile.md`: format, precedence and a template.
+- `scripts/ste_check.py` has a new `--voice PATH|auto|none` option (default `auto`). With a profile, it does not report the writer's own phrases and words, it checks dashes against the writer's dash character and rate, and it checks rhythm against the writer's sentence average.
+
 ## 5.0.0
 
 - **Connected sentences by default.** In Humanize mode, S1 keeps the reason, condition or result of a statement in the same sentence, and S2 allows descriptions up to about 35 words when commas and clauses carry the structure. A row of short sentences no longer counts as the goal. Strict mode keeps the hard limits of 20 and 25 words.
