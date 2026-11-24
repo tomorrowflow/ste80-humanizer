@@ -6,7 +6,7 @@ These are the strongest and most frequent tells. Act on one sighting.
 
 ### §1. Not X but Y
 
-**Watch for:** not X but Y; not just, not only, not merely X, but Y; it's not X, it's Y; X rather than Y; the same contrast across two sentences ("This doesn't mean X. It means Y."); a clipped negative tail ("..., no guessing"). Every language has this formula. Treat it the same way.
+**Watch for:** not X but Y; not just, not only, not merely X, but Y; it's not X, it's Y; X rather than Y; X instead of Y; no X, but Y; the same contrast across two sentences ("This doesn't mean X. It means Y."); a clipped negative tail ("..., no guessing"). Every language has this formula. Treat it the same way.
 **Problem:** The negative half names something nobody claimed, so the positive half sounds bigger. It adds weight but no claim. State the point. Keep a contrast only if the reader really believes the X half, or if both halves carry information.
 **Before:**
 > It's not just a faster build tool, it's a new way to think about your pipeline.
@@ -21,9 +21,11 @@ These are the strongest and most frequent tells. Act on one sighting.
 **After:**
 > The form fills in your address from the postcode, so you do not have to type it.
 
+German: "nicht nur …, sondern auch", "Es geht nicht um X", "X statt Y", "kein X, sondern Y", "Das heißt nicht, dass …". See `german.md`.
+
 ### §2. One-line closers and dramatic fragments
 
-**Watch for:** a one-sentence paragraph that repeats the paragraph before it; "That's the real win."; "That distinction matters."; "Let that sink in."; "Read that again."; the same closer after several sections; a sentence that names what an example just showed ("This shows the importance of..."); a row of fragments ("No setup. No config. No waiting."); one word in ALL CAPS or with periods (every. single. day.).
+**Watch for:** a one-sentence paragraph that repeats the paragraph before it; "That's the real win."; "That distinction matters."; "Let that sink in."; "Read that again."; "The numbers speak for themselves."; the same closer after several sections; a sentence that names what an example just showed ("This shows the importance of..."); a row of fragments ("No setup. No config. No waiting."); one word in ALL CAPS or with periods (every. single. day.).
 **Problem:** The line asks the reader to pause on a claim instead of adding to it. A short sentence is fine when it carries a new fact. Cut a closer that repeats. Merge a row of fragments into one sentence with a real claim.
 **Before:**
 > We moved the API to edge workers. Latency dropped to 40 ms. No cold starts. No regions. No excuses.
@@ -49,7 +51,7 @@ These are the strongest and most frequent tells. Act on one sighting.
 
 ### §4. Staged run-up before the point
 
-**Watch for:** Let's dive in, let's explore, let's break this down, here's what you need to know, now let's look at, without further ado, heads up, quick note, Honestly?, Look, Here's the thing, The thing is, Let's be honest, Real talk
+**Watch for:** Let's dive in, let's explore, let's break this down, here's what you need to know, now let's look at, without further ado, heads up, quick note, Honestly?, Look, Here's the thing, The thing is, Let's be honest, Real talk; a label before the point ("Key takeaway:", "Bottom line:", "The key point is")
 **Problem:** The writer announces the point instead of making it. Remove the run-up. "Honestly" inside a casual sentence is normal. The tell is the stand-alone opener before a routine claim.
 **Before:**
 > Let's dive into how rate limiting works. Here's what you need to know.
@@ -73,8 +75,9 @@ These are the strongest and most frequent tells. Act on one sighting.
 
 Shapes and punctuation used everywhere, whether the meaning needs them or not.
 
-### §6. Forced triads
+### §6. Forced triads and pairs
 
+**Watch for:** three adjectives or examples in a row; both outcomes of a decision ("decides whether to keep the answer or correct it"); "whether or not", "with or without", "regardless of whether".
 **Problem:** Ideas come in threes to sound complete. It can be one phrase ("fast, reliable, and scalable"), three parallel examples, or three short facts and a lesson. Check that each item adds a distinct idea. Keep three only when the meaning has three parts. Two or four is fine. If the list is itself a claim in the source (stated values, named features), keep its content in plainer form. Cutting it drops a fact.
 **Before:**
 > The new dashboard is fast, intuitive, and powerful. It brings clarity, speed, and confidence to your team.
@@ -84,6 +87,12 @@ Shapes and punctuation used everywhere, whether the meaning needs them or not.
 > A deploy can look clean and fail. A test can pass and hide a bug. A metric can be green and lie. Production rarely explains itself.
 **After:**
 > A deploy can look clean and still fail, and a green test or metric can hide a bug. Production rarely explains itself.
+
+**Pairs.** A verb like *decide*, *check* or *review* already says that the result can go either way. Writing out both outcomes tells the reader nothing new. Name the action. Keep both outcomes only when each needs its own next step. This part is *weak alone*.
+**Before (pair):**
+> For each answer, the product team decides whether to keep it and add evidence or to correct it.
+**After:**
+> The product team checks each answer and adds evidence or a correction.
 
 ### §7. Repeated sentence openings
 
@@ -156,12 +165,16 @@ The fact underneath is usually sound. Keep it and remove the dressing.
 
 ### §14. Vague connection or association
 
-**Watch for:** associated with, in association with, connected to, in connection with, linked to, tied to
+**Watch for:** associated with, in association with, connected to, in connection with, linked to, tied to; "and" between two claims where the source gives a cause
 **Problem:** The text says two things are connected but not how. "She is associated with the project" hides whether she founded it, maintains it or once filed a bug. Name the relation the source gives. If the source does not say, keep the vague words. Do not invent a role.
 **Before:**
 > The outage was linked to the DNS change, and the team is associated with the platform group.
 **After:**
 > The DNS change caused the outage. The team is part of the platform group.
+**Before ("and" for a cause):**
+> The service description does not cover these items, and a quarter of the list has no price basis.
+**After:**
+> The service description does not cover these 12 services, so they have no price basis.
 
 ### §15. Shallow -ing riders
 
@@ -192,8 +205,8 @@ The fact underneath is usually sound. Keep it and remove the dressing.
 
 ### §18. Avoiding is, are and has
 
-**Watch for:** serves as, stands as, functions as, operates as, marks, represents [a]; boasts, features, offers, maintains [a]; refers to
-**Problem:** Simple verbs become longer phrases. Use *is*, *are* and *has*.
+**Watch for:** serves as, stands as, functions as, operates as, marks, represents [a]; boasts, features, offers, maintains [a]; refers to; a document or data set that speaks or keeps silent ("the description is silent on", "the data tells us", "the numbers speak")
+**Problem:** Simple verbs become longer phrases. Use *is*, *are* and *has*. A document does not speak. Write what it contains: "does not cover", "has no rule for". Keep the plain verbs that contracts use ("the contract provides", "the policy sets"). In English legal text, "is silent on" is a standard idiom: keep it there.
 **Before:**
 > The `config/` folder serves as the central hub for settings and boasts over 40 options.
 **After:**
@@ -267,12 +280,18 @@ Remove these outright. Nothing here needs rewriting.
 
 ### §25. Writing about the document instead of its subject
 
-**Watch for:** what the text replaced ("was added to replace"); how it was made ("generated from", "compiled from", "anything unconfirmed is flagged"); a layout the reader can see ("the table below compares", "this section is organized by")
+**Watch for:** what the text replaced ("was added to replace"); how it was made ("generated from", "compiled from", "anything unconfirmed is flagged"); a layout the reader can see ("the table below compares", "this section is organized by"); a table or list the reader never saw ("each row", "this column", "the line item", "a quarter of the list")
 **Problem:** The text describes itself instead of its subject. Mention an old version only in change logs and migration guides. Keep a source credit the reader can follow. Cut the story of how you worked. A single description of the page is *weak alone*.
 **Before:**
 > This function was added to replace the old approach of looping through all users, which caused O(n²) performance.
 **After:**
 > This function looks up users in a hash map, so each lookup is O(1).
+
+**Structure the reader never saw.** The writer worked from a table or a list. The reader gets only the text, so "each row" makes them rebuild a table that is not there. Name the thing the row stands for: the answer, the invoice, the risk. Give the count instead of a share of the list. If the table is in the text or attached, "each row" is fine.
+**Before:**
+> For each row, the product team decides. Without input, a quarter of the list has no price basis.
+**After:**
+> The product team checks each answer. Without their input, 12 of the 48 services have no price basis.
 
 ## F. Writing for the wrong reader
 

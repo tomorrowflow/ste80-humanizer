@@ -86,6 +86,13 @@ TELLS = [
     (r"\b(?:is|are|was|were) associated with\b|\b(?:in connection with|linked to|tied to)\b", "vague-association", "vague connection: name the relation (founded, caused, part of)"),
     (r"\b(?:is|are|was|were|be)(?:\s+\w+ly)?\s+(?:high-quality|well-known|well-documented|long-term|real-time|well-tested|client-facing)\b", "hyphen-pair", "drop the hyphen after the noun ('is well documented')"),
     (r"^(?:that'?s|this is) (?:the real|why it|what) ", "closer", "possible one-line closer: cut it if it repeats the point"),
+    (r"\b(?:the\s+)?(?:numbers|data|figures|results)\s+speak\s+for\s+themselves\b", "closer", "'the numbers speak for themselves': give the number (§2)"),
+    (r"(?:^|[.!?]\s+)(?:key\s+(?:point|takeaway)s?|bottom\s+line|tl;dr|the\s+short\s+(?:version|answer))\s*:|\bthe\s+(?:key|real|main)\s+point\s+(?:is|here)\b", "meta-label", "label before the point: delete the label (§4)"),
+    (r"\b(?:decide\w*|check\w*|review\w*|assess\w*|determin\w*)\b[^.!?]{0,40}\bwhether\b[^.!?]{3,80}\bor\b", "both-branches", "both outcomes of a decision: name the action (weak alone, §6)"),
+    (r"\bwhether\b[^.!?]{0,80}\bor\s+not\b|\bwith\s+or\s+without\b|\bregardless\s+of\s+whether\b", "both-branches", "'whether or not', 'with or without': the reader assumes both cases (weak alone, §6)"),
+    (r"\b(?:document|description|spec|specification|policy|report|list|table)s?\s+(?:is|are|remains?|stays?)\s+(?:silent|vague|quiet)\b|\b(?:the\s+)?(?:data|numbers|figures)\s+(?:tells?|reveals?)\b", "personified-doc", "document as a speaker: write 'does not cover' (keep legal 'the contract is silent on', §18)"),
+    (r"\b(?:each|per|every|this|that)\s+(?:row|column|line\s+item|cell)\b", "structure-noun", "'each row', 'this column': name the thing, unless the reader has the table (§25)"),
+    (r"\b(?:a\s+(?:quarter|third|fifth|tenth)|half|most)\s+of\s+the\s+(?:list|table|rows|entries|items)\b", "structure-noun", "share of a list: give the count and name the things (§25)"),
 ]
 
 PHRASAL = [
@@ -197,6 +204,16 @@ TELLS_DE = [
     (r"\bes\s+wird\s+empfohlen\b|\b(?:ist|sind)\s+(?:\S+\s+){0,6}?zu\s+(?:prüfen|beachten|berücksichtigen|melden|erledigen)\b", "hidden-actor", "hidden actor: say who does it (S6)"),
     (r"\b(?:wird|werden|wurde|wurden)\b[^.!?]{0,60}?\b(?:von|vom)\s+(?:de[mnr]|einem|einer|ihr|ihm|uns|\w+)\b[^!?]{0,40}?\b(?:\w*ge\w+(?:t|en)|\w+iert)\b", "passive", "passive with an actor: make the actor the subject (S6)"),
     (r"\b(?:des|der)\s+\w+(?:\s+\w+)?\s+(?:des|der)\s+\w+(?:\s+\w+)?\s+(?:des|der)\s+\w+", "genitive-chain", "possible genitive chain: at most two in a row (S12)"),
+    (r"\b(?:kein(?:e[mnrs]?)?)\s+[^,.!?]{1,40},\s*sondern\b", "not-x-but-y", "'kein X, sondern Y': keep only a real contrast (weak alone, §1)"),
+    (r"\b(?:das|dies)\s+(?:heißt|heisst|bedeutet)\s+(?:aber\s+)?nicht,?\s+dass\b", "not-x-but-y", "'Das heißt nicht, dass …': state the point (§1)"),
+    (r"\b(?:zahlen|fakten|daten|ergebnisse)\s+sprechen\s+(?:eine\s+\w+\s+sprache|für\s+sich)\b", "closer", "'Die Zahlen sprechen für sich': give the number (§2)"),
+    (r"(?:^|[.!?]\s+)(?:kernpunkt|kernaussage|kernfrage|kurz\s+gesagt|kurzum|unterm\s+strich|kurzfassung|das\s+entscheidende)\s*:|\bder\s+(?:springende|entscheidende|eigentliche)\s+punkt\s+(?:ist|hier)\b", "meta-label", "label before the point: delete the label, keep the sentence (§4)"),
+    (r"\b(?:entscheid\w*|prüf\w*|klär\w*|bewert\w*|festleg\w*|beurteil\w*)\b[^.!?]{0,40}\bob\b[^.!?]{3,80}\boder\b", "both-branches", "both outcomes of a decision: name the action ('prüft jede Antwort') unless each needs its own step (weak alone, §6)"),
+    (r"\bob\b[^.!?]{1,80}\boder\s+nicht\b|\bmit\s+oder\s+ohne\b|\bunabhängig\s+davon,?\s+ob\b", "both-branches", "'ob … oder nicht', 'mit oder ohne': the reader assumes both cases (weak alone, §6)"),
+    (r"\b(?:dokument|vertrag|angebot|beschreibung|description|spezifikation|richtlinie|policy|tabelle|liste|bericht|studie|analyse|daten|zahlen|quelle|unterlage|sla|agb)\w*\s+(?:schweig\w*|verrät|verraten|verschweig\w*|erzählt|erzählen|bleib\w*\s+(?:vage|stumm|still))\b", "personified-doc", "document as a person: write 'regelt nicht', 'enthält keine Regelung zu' (§18)"),
+    (r"\bbleib\w*\s+(?:[\wäöüß]+\s+){1,4}ohne\s+\w+", "personified-doc", "'X bleibt ohne Y': write 'für X fehlt Y' and name the thing (weak alone, §18)"),
+    (r"\b(?:je|pro|für\s+jede[nrs]?|in\s+jede[rm])\s+(?:zeile|spalte|zelle|position|eintrag|feld|posten)\b", "structure-noun", "'je Zeile', 'pro Eintrag': name the thing, unless the reader has the table (§25)"),
+    (r"\b(?:ein(?:e[mnr]?)?\s+(?:viertel|drittel|fünftel|zehntel|großteil|grossteil)|die\s+hälfte|der\s+(?:groß|gross)teil)\s+(?:der|des)\s+(?:liste|tabelle|punkte|positionen|einträge|zeilen)\b", "structure-noun", "share of a list: give the count and name the things (§25)"),
 ]
 
 CONNECTIVES_DE = re.compile(r"^(?:Darüber hinaus|Des Weiteren|Zusätzlich|Außerdem|Ausserdem|Ferner|Allerdings|Andererseits)\b")
@@ -343,7 +360,7 @@ def check_general(text: str, strict: bool, lang: str = "en") -> list[Finding]:
         f.extend(check_rhythm(lines, raw_by_no, lang))
 
     if lang == "de":
-        return sorted(f + check_lines_de(lines, raw_by_no, strict), key=lambda x: (x.line, x.rule))
+        return drop_if_table(text, sorted(f + check_lines_de(lines, raw_by_no, strict), key=lambda x: (x.line, x.rule)))
 
     for no, line in lines:
         if not line.strip():
@@ -387,7 +404,19 @@ def check_general(text: str, strict: bool, lang: str = "en") -> list[Finding]:
             if re.search(rf"(?<![\w-]){re.escape(word)}(?![\w-])", low):
                 f.append(Finding(no, "word", f"'{word}' -> {alt}", line.strip()[:100]))
     f.sort(key=lambda x: (x.line, x.rule))
-    return f
+    return drop_if_table(text, f)
+
+
+TABLE_OR_ATTACHMENT_RE = re.compile(
+    r"^\s*\|.*\|\s*$|\b(?:anhang|anbei|angehängt|attached|attachment|enclosed)\b", re.I | re.M
+)
+
+
+def drop_if_table(text: str, findings: list[Finding]) -> list[Finding]:
+    """'each row' is fine when the reader has the table: in the text or attached."""
+    if TABLE_OR_ATTACHMENT_RE.search(text):
+        return [x for x in findings if x.rule != "structure-noun"]
+    return findings
 
 
 LIST_OR_HEADING_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)]|#+|\|)\s")

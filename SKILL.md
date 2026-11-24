@@ -12,7 +12,7 @@ description: |
   English and German.
 license: MIT
 metadata:
-  version: "5.1.0"
+  version: "5.2.0"
   author: "Dodaios"
 ---
 
@@ -113,10 +113,10 @@ After you detect the language, look for `~/.claude/voice/<lang>.md` (for example
 
 | § | Tell | Watch for | Fix |
 |---|---|---|---|
-| 1 | Not X but Y | not just X, but Y; it's not X, it's Y; "This doesn't mean X. It means Y."; "..., no guessing" | State the point. Keep a contrast only if the reader really believes X. |
-| 2 | One-line closers, fragments | "That's the real win."; "Let that sink in."; "No setup. No config."; every. single. day. | Cut a closer that repeats. Merge fragments into one claim. |
+| 1 | Not X but Y | not just X, but Y; it's not X, it's Y; "This doesn't mean X. It means Y."; "..., no guessing"; X instead of Y | State the point. Keep a contrast only if the reader really believes X. |
+| 2 | One-line closers, fragments | "That's the real win."; "Let that sink in."; "The numbers speak for themselves."; "No setup. No config."; every. single. day. | Cut a closer that repeats. Merge fragments into one claim. |
 | 3 | Sayings that sound deep | at its core, the real question is, X is the Y of Z, the language of | Replace with the specific claim. |
-| 4 | Staged run-up | Let's dive in, here's what you need to know, Honestly?, Here's the thing | Remove it. Start with the point. |
+| 4 | Staged run-up | Let's dive in, here's what you need to know, Honestly?, Here's the thing, "Key takeaway:" | Remove it. Start with the point. |
 | 5 | Arguing with no one | To be clear, I'm not saying, A tempting approach would be, You might think | Remove the defense unless someone in the context made the objection. |
 
 > It's not just a faster build tool, it's a new way to think about your pipeline.
@@ -126,7 +126,7 @@ After you detect the language, look for `~/.claude/voice/<lang>.md` (for example
 
 | § | Tell | Watch for | Fix |
 |---|---|---|---|
-| 6 | Forced triads | "fast, reliable, and scalable"; three parallel examples and a lesson | Keep three only if the meaning has three parts. If the list is a claim in the source, keep its content. |
+| 6 | Forced triads and pairs | "fast, reliable, and scalable"; three parallel examples and a lesson; both outcomes of a decision; "whether or not" | Keep three only if the meaning has three parts. For a decision, name the action ("checks each answer"). If the list is a claim in the source, keep its content. |
 | 7 | Repeated openings *(weak alone)* | It reads... It checks... It starts... | Merge sentences or start with the action. |
 | 8 | Dashes everywhere | em dash (—), en dash (–), ` -- ` | No dashes in the final text unless the writer's sample uses them. Use a period, comma, colon or parentheses. Leave code and URLs alone. |
 | 9 | Stacked qualifiers *(weak alone)* | could potentially, might arguably, in some cases it may | Keep one qualifier when the source supports it. |
@@ -144,11 +144,11 @@ The fact underneath is usually sound. Keep it and remove the dressing.
 |---|---|---|---|
 | 12 | Overused AI words | delve, leverage, robust, seamless, crucial, pivotal, showcase, underscore, tapestry, testament, landscape, additionally, utilize, meticulous, intricate | Use the plain word (`references/word-swaps.md`). |
 | 13 | Inflated significance | a pivotal moment, reflects a broader, lasting legacy, the future looks bright | Keep the fact. End on the last concrete fact. |
-| 14 | Vague association | associated with, linked to, tied to | Name the relation the source gives. Do not invent one. |
+| 14 | Vague association | associated with, linked to, tied to; "and" where the source gives a cause | Name the relation the source gives. Do not invent one. |
 | 15 | Shallow -ing riders | highlighting, ensuring, fostering, reflecting, showcasing | Cut the rider unless the source supports its claim. |
 | 16 | Sales language | groundbreaking, stunning, world-class, nestled in the heart of | Say what the thing is and does. |
 | 17 | Borrowed authority | experts argue, industry reports, featured in [outlets] | Name who said what, or cut it. Never invent a source. |
-| 18 | Avoiding is, are, has | serves as, stands as, boasts, features | Use *is*, *are*, *has*. |
+| 18 | Avoiding is, are, has | serves as, stands as, boasts, features; a document that speaks ("is silent on") | Use *is*, *are*, *has*. For a document, write what it contains. |
 
 > Version 2.0 marks a pivotal moment, reflecting a broader shift toward developer-first tooling.
 > → Version 2.0 adds a CLI and drops support for Node 16.
@@ -168,7 +168,7 @@ The fact underneath is usually sound. Keep it and remove the dressing.
 | 22 | Chatbot residue | Great question!, I hope this helps, Let me know, Would you like... | Remove the wrapper. Keep the content. |
 | 23 | Knowledge-limit guesses | as of my last update, details are limited, likely [began] | Say what the source does not show, or cut it. |
 | 24 | Heading repeated in the first line | "## Security" then "Security is important." | Remove that line. |
-| 25 | Text about the document | "was added to replace", "the table below compares" | Write about the subject, not the document. |
+| 25 | Text about the document | "was added to replace", "the table below compares"; a table the reader never saw ("each row") | Write about the subject, not the document. Name the thing. |
 
 ### F. Writing for the wrong reader
 

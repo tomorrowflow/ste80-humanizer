@@ -1,5 +1,15 @@
 # Changelog
 
+## 5.2.0
+
+- **Structure the reader never saw (§25).** "je Zeile", "pro Spalte", "der Eintrag", "ein Viertel der Liste", and in English "each row", "this column", "a quarter of the list". The writer worked from a table, but the reader gets only the text. The rewrite names the thing and gives the count. The checker skips this rule when the text holds a table or mentions an attachment.
+- **Pairs (§6, now "Forced triads and pairs").** Both outcomes of a decision ("entscheidet, ob es die Antwort hält oder korrigiert", "decides whether to keep or correct it"), "ob … oder nicht", "whether or not", "mit oder ohne", "with or without". The rewrite names the action.
+- **Documents that speak (§18).** "Die Service Description schweigt zu", "the description is silent on", "the data tells us", "X bleibt ohne Y". The rewrite says what the document contains ("regelt nicht", "does not cover"). The plain verbs of contracts stay: "sieht vor", "bestimmt", "regelt", "provides", and the legal idiom "is silent on".
+- **"und" for a cause (§14).** When the source gives a cause, write it ("Daher", "so").
+- **More contrasts and labels.** §1 adds "X statt Y", "kein X, sondern Y", "Das heißt nicht, dass", "X instead of Y". §4 adds labels before the point ("Kernpunkt:", "Key takeaway:"). §2 adds "Die Zahlen sprechen für sich".
+- **Research.** `references/abstract-and-binary-research.md` lists the sources. Only the contrast forms are documented AI tells. The other patterns are observations, supported by style guides and Grice's maxim of quantity.
+- **Eval.** New case `humanize-german-abstract`.
+
 ## 5.1.0
 
 - **Voice profiles.** After language detection, the skill reads `~/.claude/voice/<lang>.md` if it exists. A profile records the writer's own habits with evidence. It beats Pass 1 and Pass 2, but never the fidelity rules: a phrase, word, dash or sentence length that the profile names is kept, not treated as a tell. Rhetorical rules come back as suggestions only.

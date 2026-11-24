@@ -41,31 +41,37 @@ Prose paragraphs average 15 to 20 words per sentence, as in English. Split a sen
 
 | § | German rule |
 |---|---|
-| 1 | "nicht nur …, sondern auch" is correct German, but German Wikipedia lists it as an AI tell. Act when it repeats or when the contrast is staged. One real contrast stays. Also watch "Es geht nicht um X. Es geht um Y." and the half form "Das ist nicht nur ärgerlich." without a "sondern": it still stages a contrast, so state the point ("Das ist ärgerlich und …"). |
+| 1 | "nicht nur …, sondern auch" is correct German, but German Wikipedia lists it as an AI tell. Act when it repeats or when the contrast is staged. One real contrast stays. Also watch "Es geht nicht um X. Es geht um Y." and the half form "Das ist nicht nur ärgerlich." without a "sondern": it still stages a contrast, so state the point ("Das ist ärgerlich und …"). The same goes for "X statt Y", "kein X, sondern Y" and "Das heißt nicht, dass …". German Wikipedia names the "nicht … sondern" contrast as a tell. |
+| 6 | Pairs count too. "Je Zeile entscheidet das Produktteam, ob es die Antwort hält und belegt oder korrigiert" spells out both outcomes of a decision. "Entscheiden" and "prüfen" already say that the result can go either way. Name the action: "Das Produktteam prüft jede Antwort und belegt oder korrigiert sie." Keep both outcomes only if each needs its own next step. Also watch "ob … oder nicht", "mit oder ohne", "unabhängig davon, ob". Do not touch "bzw." or "jeweils" for this reason alone: people use them often. |
 | 7 | Watch sentences that start with "Darüber hinaus", "Des Weiteren", "Zusätzlich", "Außerdem", "Ferner", "Allerdings". ChatGPT starts German sentences with them much more often than people do. More than one per paragraph is a tell. |
 | 8 | Do not ban the Gedankenstrich. Act on density: more than about one pause dash per paragraph is a tell. Replace an em dash (—) with a German en dash or a comma. Never touch ranges, routes, list dashes or hyphens. Do not remove every dash: dash-free text is a newer AI tell. |
 | 10 | Drop the English hyphen rule. Instead, fix open compounds from English style: "Software Entwicklung" → "Softwareentwicklung". |
+| 14 | "und" between two claims where the source gives a cause. "Die Service Description schweigt zu diesen Punkten und ohne Auskunft bleibt ein Viertel der Liste ohne Preisgrundlage" hides the "daher". Write the link: "Die Service Description regelt diese 12 Leistungen nicht. Daher fehlt für sie eine Preisgrundlage." |
 | 15 | German form of the rider: a Partizip I after a comma ("…, die Bedeutung unterstreichend") or ", was … unterstreicht". |
+| 18 | A document that acts like a person: "die Service Description schweigt zu", "der Vertrag verrät", "die Zahlen erzählen", "die Liste bleibt stumm". Duden gives "schweigen" for a text only as a figure of speech. In German law a party keeps silent, not a document. Write what the document contains: "regelt nicht", "enthält keine Regelung zu", "nennt keinen Preis für". Keep the plain verbs of contracts and statutes: "der Vertrag sieht vor", "bestimmt", "regelt", "enthält". Also watch "X bleibt ohne Y" for "X hat kein Y" ("ein Viertel der Liste bleibt ohne Preisgrundlage" → "für 12 Leistungen fehlt die Preisgrundlage"). "Das bleibt ohne Folgen" is normal German. |
 | 20 | German has no title case. Nouns keep their capital, adjectives and verbs in headings do not ("Die Neuen Funktionen" → "Die neuen Funktionen"). |
 | 21 | Turn English quotes in German text (“…”, "…" in prose) into „…“. Keep the source's system if it is consistent. |
+| 25 | Structure the reader never saw: "je Zeile", "pro Spalte", "der Eintrag", "diese Punkte", "ein Viertel der Liste". The writer worked from a table or a list, and the reader gets only the mail. Name the thing the row stands for and give the count: "je Zeile entscheidet" → "für jede Antwort entscheidet"; "ein Viertel der Liste" → "12 der 48 Leistungen". If the table is in the mail or attached, "je Zeile" is fine. |
 
-All other tells (§2 to §6, §9, §11 to §14, §16 to §19, §22 to §26) apply as in SKILL.md. Use the German word lists below.
+All other tells (§2 to §5, §9, §11 to §13, §16, §17, §19, §22 to §24, §26) apply as in SKILL.md. Use the German word lists below.
 
 ## German tells
 
 | § | Watch for |
 |---|---|
+| 2 | Die Zahlen sprechen für sich, Die Daten sprechen eine klare Sprache |
 | 3 | im Kern, letztlich geht es um, am Ende des Tages |
-| 4 | Tauchen wir ein, Lass uns eintauchen, Hier ist, was du wissen musst |
+| 4 | Tauchen wir ein, Lass uns eintauchen, Hier ist, was du wissen musst, "Kernpunkt:", "Kurz gesagt:", "Unterm Strich:", der springende Punkt ist |
+| 6 | entscheidet / prüft, ob … oder …; ob … oder nicht; mit oder ohne; unabhängig davon, ob (weak alone) |
 | 9 | könnte möglicherweise, kann unter Umständen eventuell, potenziell möglicherweise |
 | 12 | nahtlos, maßgeschneidert, ganzheitlich, essenziell, vielfältig, umfassend, innovativ (weak alone) |
 | 13 | spielt eine wichtige / zentrale / entscheidende Rolle, Meilenstein, Wendepunkt, Schlüsselmoment, unterstreicht die Bedeutung, tief verwurzelt, ein Zeugnis für |
 | 16 | atemberaubend, im Herzen von, eingebettet in, reiches kulturelles Erbe, unbedingt besuchen |
 | 17 | Experten sind sich einig, Branchenberichte, Beobachter, Einige Kritiker argumentieren |
-| 18 | dient als, fungiert als, stellt … dar, verfügt über, bietet (where "ist" or "hat" fits) |
+| 18 | dient als, fungiert als, stellt … dar, verfügt über, bietet (where "ist" or "hat" fits); das Dokument schweigt / verrät / erzählt / bleibt vage; X bleibt ohne Y |
 | 22 | Natürlich!, Sicherlich!, Gerne!, Gute Frage!, Ich hoffe, das hilft, Lass mich wissen, Möchtest du, dass ich …, Ich hoffe, diese Nachricht erreicht Sie wohlauf |
 | 23 | Bis zu meinem letzten Update, Stand meines letzten Wissensupdates, basierend auf verfügbaren Informationen, Obwohl spezifische Details begrenzt sind |
-| 25 | In diesem Artikel werden wir …, Die folgende Tabelle zeigt …, a closing "Fazit" or "Herausforderungen" section, Zusammenfassend lässt sich sagen, Abschließend |
+| 25 | je Zeile, pro Spalte, der Eintrag, diese Punkte, ein Viertel der Liste; In diesem Artikel werden wir …, Die folgende Tabelle zeigt …, a closing "Fazit" or "Herausforderungen" section, Zusammenfassend lässt sich sagen, Abschließend |
 | new | English calques: "macht Sinn" (→ ist sinnvoll, ergibt Sinn), "am Ende des Tages" (→ letztlich), "der Elefant im Raum", "realisieren" for "merken", "in 2024" (→ 2024, im Jahr 2024) |
 | new | False ranges: "von Start-ups bis zu Konzernen" for members of a set |
 | new | Uniform text: steady sentence length, few commas, the same connectors |

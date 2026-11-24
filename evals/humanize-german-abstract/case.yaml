@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: humanize-german-abstract
+expected_outcome: |
+  A German status mail that names things instead of pointing at a table the reader never saw. No "je Zeile" or "ein Viertel der Liste": it names the answers and services and gives the count (12 of 48). No decision with both outcomes spelled out. No document that "schweigt": it says the Service Description does not cover the 12 services, and it states the cause with a word like "daher". It keeps "der Vertrag sieht vor", the 12 of 48 services, the deadline Freitag, the Produktteam, Jonas and the formal register.

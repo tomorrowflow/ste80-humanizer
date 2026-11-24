@@ -168,7 +168,7 @@ Does this email sound like AI? Just tell me, don't rewrite it.
 | 4 | **Staged run-up** | Let's dive in. Here's what you need to know. | The API allows 100 requests per minute. |
 | 5 | **Arguing with no one** | To be clear, I'm not saying microservices are bad... | We split the billing service out first. |
 | **B. Rhythm by rule** ||||
-| 6 | **Forced triads** | fast, intuitive, and powerful | loads in under a second |
+| 6 | **Forced triads and pairs** | fast, intuitive, and powerful; decides whether to keep or correct each answer | loads in under a second; checks each answer |
 | 7 | **Repeated openings** (*weak alone*) | It reads... It checks... It starts... | It reads the config and checks the schema. |
 | 8 | **Dashes everywhere** | The migration — which took six weeks — is done. | The migration took six weeks and is done. |
 | 9 | **Stacked qualifiers** (*weak alone*) | could potentially possibly cause | can break |
@@ -190,7 +190,7 @@ Does this email sound like AI? Just tell me, don't rewrite it.
 | 22 | **Chatbot residue** | Great question! ... I hope this helps! | (cut the wrapper) |
 | 23 | **Knowledge-limit hedges** | While details are limited, it was likely created around 2015. | The sources do not say. |
 | 24 | **Heading repeated** | ## Security / Security is important. | (cut the line) |
-| 25 | **Writing about the document** | This function was added to replace the old approach... | This function looks up users in a hash map. |
+| 25 | **Writing about the document** | This function was added to replace the old approach...; For each row, the team decides... | This function looks up users in a hash map.; For each answer, the team decides... |
 | **F. Writing for the wrong reader** ||||
 | 26 | **Re-explaining what the reader knows** | A reply that walks through the whole diagnosis first | Agreed. I'll switch the job to UTC. |
 
