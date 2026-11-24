@@ -17,9 +17,9 @@ STE80 Humanizer makes AI-written text read like a careful person wrote it, witho
 > Get this right, and your cluster heals itself.
 
 **After:**
-> A liveness probe tells the kubelet if a container is healthy. If the probe fails, the kubelet restarts the container. This keeps the application available.
+> A liveness probe tells the kubelet if a container is healthy. If the probe fails, the kubelet restarts the container, which keeps the application available.
 >
-> A bad probe can also cause many restarts. For example, a timeout that is too short makes healthy containers fail the probe. To prevent this, set `initialDelaySeconds` and `failureThreshold` to values that fit your application.
+> A bad probe can also cause many restarts, for example when a timeout that is too short makes healthy containers fail the probe. To prevent this, set `initialDelaySeconds` and `failureThreshold` to values that fit your application.
 
 The goal is text that people read easily. Getting past AI detectors is not a goal.
 
@@ -31,7 +31,7 @@ Most humanizers only remove phrases. The text loses "Great question!" and "seaml
 |---|---|
 | Original | Chatbot opener, dash, "not just X", "-ing" rider, "however", "could potentially", dramatic closer |
 | After Pass 1 (tells) | "...the container will be automatically restarted by the kubelet, which keeps your application available. Misconfigured probes can cause cascading restarts, so parameters ... should be carefully tuned." Clean words, but heavy sentences. |
-| After Pass 2 (STE80) | Short sentences, one idea each, active voice, the instruction apart from the description. |
+| After Pass 2 (STE80) | Connected sentences with one main idea each, active voice, the instruction apart from the description. |
 
 ## The method: what Karpathy said
 
@@ -57,8 +57,8 @@ The post then goes up a ladder: diagrams, then HTML pages, then explainer videos
 
 | STE rule | 100% (Strict mode) | 80% (default) |
 |---|---|---|
-| Sentence length 20 / 25 | Hard limit | A few words over is fine |
-| One idea per sentence | Always | Always |
+| Sentence length 20 / 25 | Hard limit | Instructions about 20, descriptions up to about 35 |
+| One idea per sentence | Always | One main idea, with its reason or condition in the same sentence |
 | Active voice, simple tenses | Always | Always |
 | Approved dictionary only | Yes | No, use the plain common word |
 | "check", "test" as verbs | No | Yes |
@@ -67,6 +67,26 @@ The post then goes up a ladder: diagrams, then HTML pages, then explainer videos
 | Semicolons | No | No |
 
 Karpathy's tip is about readability. It does not remove chatbot phrases, so Pass 1 does that first.
+
+**Connected sentences, not choppy ones.** Strict STE gives short sentences. In normal prose, a row of short sentences sounds as robotic as the AI text it replaces. So the 80% default keeps the reason, condition or result in the same sentence and joins linked clauses with commas and conjunctions. Strict mode keeps the hard limits.
+
+## German
+
+The skill detects the language of the text. For German, it reads [references/german.md](references/german.md), which adapts the rules to German:
+
+- It keeps subordinate clauses, Perfekt and Präteritum as written, separable verbs (einrichten, anlegen), modal particles (doch, mal, halt) in casual text, „…“ quotes and the Gedankenstrich used now and then.
+- It looks for German tells from German Wikipedia's [Anzeichen für KI-generierte Inhalte](https://de.wikipedia.org/wiki/Wikipedia:Anzeichen_f%C3%BCr_KI-generierte_Inhalte) and a [UZH study](https://aclanthology.org/2024.swisstext-1.9.pdf) of ChatGPT German: "nicht nur …, sondern auch", sentences that start with "Darüber hinaus" or "Zusätzlich", "spielt eine zentrale Rolle", "Ich hoffe, das hilft", calques like "macht Sinn".
+- It replaces English-only rules (phrasal verbs, noun stacks, hyphen pairs) with German ones: a short verb bracket, at most two genitives in a row, hyphens in long compounds.
+
+The research behind these rules, with sources, is in [references/german-research.md](references/german-research.md).
+
+## Voice profiles
+
+General rules cannot know your habits. Maybe you write "let me know" in every third mail, use " - " as your dash, or write 16 words per sentence on average. Then the tells list is wrong for you.
+
+Put a voice profile at `~/.claude/voice/<lang>.md` (`de.md`, `en.md`). The skill reads it after language detection and keeps what the profile names: your phrases, words, dash and sentence length. The fidelity rules still come first. Rules about the structure of an argument come back as suggestions, never as edits. The checker reads the same file (`--voice auto` is the default, `--voice none` turns it off).
+
+[references/voice-profile.md](references/voice-profile.md) has the format and a template. A profile contains traces of real writing, so keep it private.
 
 ## How to read the skill
 
@@ -178,8 +198,8 @@ Does this email sound like AI? Just tell me, don't rewrite it.
 
 | # | Rule | 80% vs Strict |
 |---|---|---|
-| S1 | One idea per sentence | 80% allows two linked facts with "and" or "because" |
-| S2 | Short sentences: 20 words (instructions), 25 (descriptions) | 80% allows a small overrun |
+| S1 | One main idea per sentence | 80% keeps the reason, condition or result in the same sentence |
+| S2 | Sentence length: 20 words (instructions), 25 (descriptions) | 80% allows descriptions up to about 35 words |
 | S3 | Condition first: "If X, do Y." | Same |
 | S4 | Do not drop words ("the", "a", "that") | 80% allows fragments in tables and headings |
 | S5 | Lists for steps and complex content | Same |
@@ -200,9 +220,13 @@ More examples: [references/ste80-rules.md](references/ste80-rules.md). Full stri
 
 `scripts/ste_check.py` is a small Python linter with no dependencies. It flags many Pass 1 tells, such as not-X-but-Y, chatbot phrases, run-ups, fake depth, stacked hedges, vague authority and association, "-ing" riders, inflated claims, AI words, hyphen pairs and curly quotes. It also flags the measurable Pass 2 rules: sentence and paragraph length, semicolons, dashes, passive voice, perfect and progressive tenses, "-ing" forms and phrasal verbs.
 
+With `--lang de` (or by default, when it detects German), it counts German words and abbreviations correctly and flags the German tells, Gedankenstrich density, English quotes, genitive chains, long compounds and passive with an actor.
+
 ```bash
 python scripts/ste_check.py README.md
 python scripts/ste_check.py --strict docs/runbook.md
+python scripts/ste_check.py --lang de docs/einleitung.md
+python scripts/ste_check.py --voice none draft.md   # ignore your voice profile
 cat draft.txt | python scripts/ste_check.py -
 ```
 
@@ -210,14 +234,14 @@ It is a heuristic, not an AI detector and not a compliance checker.
 
 ## Tests
 
-`evals/` has four cases in the `claude plugin eval` format: a README rewrite, an explanation from scratch, a strict runbook and a casual LinkedIn post that does not mention STE. Run them with `claude plugin eval . --allow-tools Write,Edit,Bash`.
+`evals/` has five cases in the `claude plugin eval` format: a README rewrite, an explanation from scratch, a strict runbook, a casual LinkedIn post that does not mention STE and a German email. Run them with `claude plugin eval . --allow-tools Write,Edit,Bash`.
 
 What we saw: when the prompt names ASD-STE100, the base model already gets the style mostly right. The skill made the difference in fidelity. In the LinkedIn rewrite, the run without the skill invented a quote and changed "40+ customers" to "40-odd". The run with the skill kept every fact. In the README rewrite, it kept "you may need to" and flagged a contradiction in the source. These are small tests, so treat them as a hint, not proof.
 
 ## Limits
 
 - **STE is for clear explanatory text.** For fiction, speeches and brand copy, the skill does Pass 1 only.
-- **STE is an English standard.** For other languages, the skill applies the tells and the structure rules, but not the English word lists.
+- **STE is an English standard.** German has its own rule set in `references/german.md`. For other languages, the skill applies the tells and the structure rules, but not the English word lists.
 - **"STE style" is not "STE compliant."** Compliance needs the official dictionary, trained writers and review.
 
 ## Sources and credits

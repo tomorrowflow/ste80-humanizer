@@ -1,0 +1,4 @@
+schema_version: "1.1"
+name: humanize-german-email
+expected_outcome: |
+  A German email to a colleague that sounds like a person wrote it: no chatbot opener or closer, no "Darüber hinaus" or "Zusätzlich" openers, no "nicht nur …, sondern auch", no "spielt eine zentrale Rolle", no "macht Sinn". It stays German, keeps "du", keeps natural connected sentences with subordinate clauses, keeps German quotes and all facts (Release 3.2 am 14. März, Export-Fehler bei mehr als 10 000 Zeilen, Workaround über die CSV-Option, Fix in 3.2.1 bis Ende März, Meeting am Donnerstag um 10 Uhr, Lea).

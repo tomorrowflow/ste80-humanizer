@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""ste_check: a small heuristic linter for AI tells and STE-style (ASD-STE100-inspired) English.
+"""ste_check: a small heuristic linter for AI tells and STE-style (ASD-STE100-inspired) English and German.
 
 Part of the ste80-humanizer skill. It finds places to look at.
 It does not prove compliance with ASD-STE100 and it is not an AI detector.
@@ -8,6 +8,8 @@ No dependencies. Python 3.8+.
 Usage:
     python ste_check.py FILE [FILE ...]
     python ste_check.py --strict FILE
+    python ste_check.py --lang de FILE      (default: --lang auto)
+    python ste_check.py --voice ~/.claude/voice/de.md FILE   (default: --voice auto)
     cat draft.txt | python ste_check.py -
     python ste_check.py --json FILE
 
@@ -17,6 +19,7 @@ Exit code: 0 if no findings, 1 if findings, 2 on usage error.
 from __future__ import annotations
 
 import argparse
+import os
 import json
 import re
 import sys
@@ -111,6 +114,7 @@ NOT_PARTICIPLE = {
     "open", "even", "often", "golden", "hidden", "sudden", "wooden", "own", "down",
     "shown", "known", "unknown", "brown", "grown", "drawn", "built", "content",
     "intent", "event", "agent", "client", "point", "front", "want", "difficult",
+    "permanent", "prominent", "convenient", "fluent", "patient", "resilient", "redundant",
 }
 
 AUX = r"(?:am|is|are|was|were|be|been|being)"
@@ -119,7 +123,86 @@ PERFECT_RE = re.compile(r"\b(?:has|have|had)\s+(?:not\s+)?(?:been|\w+ed|\w+en|do
 PROGRESSIVE_RE = re.compile(rf"\b{AUX}\s+(?:not\s+)?(\w+ing)\b", re.I)
 MODAL_PASSIVE_RE = re.compile(r"\b(?:can|could|may|might|must|should|shall|will|would)\s+(?:not\s+)?be\s+\w+(?:ed|en)\b", re.I)
 CONTRACTION_RE = re.compile(r"\b\w+(?:n't|'re|'ve|'ll|'d|'m)\b|\b(?:it|that|there|what|here)'s\b", re.I)
-WORD_RE = re.compile(r"[A-Za-z][A-Za-z'\-]*|\d[\w.,:/%-]*")
+# Unicode letters, so that "Größe" and "Übersicht" count as one word each.
+WORD_RE = re.compile(r"[^\W\d_][\w'’\-]*|\d[\w.,:/%-]*")
+
+# --- Language detection ---
+
+DE_FUNCTION = {
+    "der", "die", "das", "und", "ist", "nicht", "mit", "für", "auf", "ein", "eine", "zu",
+    "von", "sie", "wir", "ich", "es", "den", "dem", "sich", "auch", "wird", "werden",
+    "bei", "oder", "dass", "wenn", "aber", "noch", "nur", "sind", "hat", "haben",
+}
+EN_FUNCTION = {
+    "the", "and", "is", "of", "to", "a", "that", "it", "for", "with", "on", "are",
+    "this", "be", "you", "not", "or", "if", "but", "was", "has", "have", "will", "can",
+}
+
+
+def detect_language(text: str) -> str:
+    words = [w.lower() for w in WORD_RE.findall(text)]
+    de = sum(w in DE_FUNCTION for w in words)
+    en = sum(w in EN_FUNCTION for w in words)
+    return "de" if de > en else "en"
+
+
+# --- German lists (see references/german.md) ---
+
+ABBR_DE = [
+    "z. B.", "z.B.", "d. h.", "d.h.", "u. a.", "u.a.", "u. Ä.", "o. Ä.", "u. U.", "i. d. R.",
+    "z. T.", "m. E.", "bzw.", "vgl.", "ca.", "usw.", "etc.", "ggf.", "evtl.", "inkl.", "exkl.",
+    "sog.", "bspw.", "zzgl.", "Nr.", "S.", "Kap.", "Abs.", "Art.", "Ziff.", "Bd.", "Hrsg.",
+    "Abb.", "Tab.", "Tel.", "Dr.", "Prof.", "St.", "Mio.", "Mrd.", "Std.", "Min.", "Jh.",
+]
+ABBR_DE_RE = re.compile(
+    r"(?<![\w.])(?:" + "|".join(re.escape(a) for a in sorted(ABBR_DE, key=len, reverse=True)) + r")"
+)
+MONTHS_DE = r"Januar|Jänner|Februar|März|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember"
+ORDINAL_DE_RE = re.compile(
+    rf"\b(\d{{1,2}})\.(?=\s+(?:{MONTHS_DE}|Jahrhunderts?|Kapitel|Auflage|Mal|Platz|Stock|Klasse|Quartals?|[a-zäöü]))"
+)
+
+SWAPS_DE = {
+    "utilisieren": "verwenden", "canceln": "absagen", "gecancelt": "abgesagt",
+    "generieren": "erzeugen", "zeitnah": "a date, or 'bald'", "nahtlos": "(delete)",
+    "maßgeschneidert": "(fact or delete)", "ganzheitlich": "(fact or delete)",
+    "essenziell": "wichtig, nötig", "mehrwert": "say what it brings",
+    "atemberaubend": "(delete)", "bahnbrechend": "(fact or delete)",
+    "zur anwendung kommen": "angewendet werden, or a verb", "zum einsatz kommen": "eingesetzt werden, or a verb",
+    "verwendung finden": "verwendet werden", "berücksichtigung finden": "berücksichtigt werden",
+    "eine entscheidung treffen": "entscheiden", "in erwägung ziehen": "erwägen, prüfen",
+    "unter beweis stellen": "zeigen, beweisen", "zur durchführung bringen": "durchführen",
+}
+
+TELLS_DE = [
+    (r"\bnicht\s+nur\b[^.!?]{0,120}\bsondern\b", "not-x-but-y", "'nicht nur …, sondern auch': keep only a real contrast (§1)"),
+    (r"\b(?:ist|sind|war|waren)\s+(?:das\s+|es\s+)?nicht\s+nur\s+\w+[.!]", "not-x-but-y", "'Das ist nicht nur X.': staged contrast, state the point (§1)"),
+    (r"\bes\s+geht\s+nicht\s+(?:nur\s+)?(?:um|darum)\b", "not-x-but-y", "'es geht nicht um X': state the point (§1)"),
+    (r"\b(?:im\s+kern|letztlich\s+geht\s+es\s+um)\b", "fake-depth", "fake depth: say the plain claim (§3)"),
+    (r"\b(?:tauchen\s+wir\s+ein|lass(?:t)?\s+uns\s+(?:eintauchen|einen\s+blick\s+werfen)|hier\s+ist,?\s+was\s+(?:du|sie)\s+wissen\s+m)", "run-up", "run-up before the point: start with the point (§4)"),
+    (r"\b(?:könnte|kann|dürfte)\s+(?:möglicherweise|eventuell|potenziell|unter\s+umständen)\b", "stacked-hedge", "stacked hedge: keep one hedge (§9)"),
+    (r"\bspielt\s+eine\s+(?:zentrale|wichtige|entscheidende|bedeutende|wesentliche|maßgebliche|schlüssel)\s*-?\s*rolle\b", "inflation", "inflated significance: say what it does (§13)"),
+    (r"\b(?:meilenstein|wendepunkt|schlüsselmoment|vermächtnis|tief\s+verwurzelt)\b", "inflation", "inflated significance (weak alone, §13)"),
+    (r"\bunterstreicht\s+(?:die|seine|ihre|deren|dessen)\s+bedeutung\b|\bein\s+zeugnis\s+(?:für|von)\b", "inflation", "inflated significance: keep the fact (§13)"),
+    (r",\s+(?:\w+\s+){0,4}(?:unterstreichend|gewährleistend|hervorhebend|betonend|widerspiegelnd)\b", "ing-rider", "Partizip-I rider: delete or make it a sentence (§15)"),
+    (r"\bim\s+herzen\s+(?:von|der|des)\b|\beingebettet\s+in\b|\breiche[sn]?\s+kulturelle[sn]?\s+erbe\b", "sales", "sales language: say what it is (§16)"),
+    (r"\b(?:experten|studien|beobachter|kritiker|branchenberichte)\s+(?:sagen|zeigen|sind\s+sich\s+einig|argumentieren|betonen)\b", "vague-authority", "vague authority: name the source or delete (§17)"),
+    (r"\b(?:dient|dienen|fungiert|fungieren)\s+als\b", "is-avoidance", "'dient als': use 'ist' (weak alone, §18)"),
+    (r"^(?:natürlich|sicherlich|gerne|gern|gute\s+frage|super\s+frage)[!,.]", "chatbot", "chatbot opener: delete (§22)"),
+    (r"\bich\s+hoffe,?\s+(?:das|dies)\s+hilft\b|\blass(?:en\s+sie|t)?\s+(?:mich|uns)\s+wissen\b|\bmöchte(?:st|n)\s+(?:du|sie),?\s+dass\s+ich\b|\bdiese\s+nachricht\s+erreicht\s+(?:sie|dich|euch)\b", "chatbot", "chatbot residue: delete (§22)"),
+    (r"\b(?:bis\s+zu\s+meinem|stand\s+meines)\s+letzten\s+(?:wissens)?updates?\b|\bbasierend\s+auf\s+(?:den\s+)?verfügbaren\s+informationen\b", "knowledge-hedge", "knowledge-limit hedge: delete (§23)"),
+    (r"\bin\s+diesem\s+(?:artikel|beitrag|abschnitt|leitfaden)\s+(?:werden\s+wir|erfahren\s+sie|zeigen\s+wir)\b|\bdie\s+folgende\s+tabelle\s+zeigt\b", "meta", "writing about the text: give the content (§25)"),
+    (r"^(?:zusammenfassend|abschließend|abschliessend|fazit)\b", "closer", "summary closer: cut it if it repeats (§25)"),
+    (r"\bmacht\s+(?:es\s+|das\s+)?(?:keinen\s+|wenig\s+|viel\s+|absolut\s+)?sinn\b|\bam\s+ende\s+des\s+tages\b|\belefant\s+im\s+raum\b|\bin\s+(?:19|20)\d\d\b", "calque", "English calque: use the German phrase"),
+    (r"\bes\s+wird\s+empfohlen\b|\b(?:ist|sind)\s+(?:\S+\s+){0,6}?zu\s+(?:prüfen|beachten|berücksichtigen|melden|erledigen)\b", "hidden-actor", "hidden actor: say who does it (S6)"),
+    (r"\b(?:wird|werden|wurde|wurden)\b[^.!?]{0,60}?\b(?:von|vom)\s+(?:de[mnr]|einem|einer|ihr|ihm|uns|\w+)\b[^!?]{0,40}?\b(?:\w*ge\w+(?:t|en)|\w+iert)\b", "passive", "passive with an actor: make the actor the subject (S6)"),
+    (r"\b(?:des|der)\s+\w+(?:\s+\w+)?\s+(?:des|der)\s+\w+(?:\s+\w+)?\s+(?:des|der)\s+\w+", "genitive-chain", "possible genitive chain: at most two in a row (S12)"),
+]
+
+CONNECTIVES_DE = re.compile(r"^(?:Darüber hinaus|Des Weiteren|Zusätzlich|Außerdem|Ausserdem|Ferner|Allerdings|Andererseits)\b")
+PAUSE_DASH_DE = re.compile(r"(?<=[^\s\d])\s–\s(?=[^\d])")
+LONG_COMPOUND_DE = re.compile(r"\b[A-ZÄÖÜ][a-zäöüß]{20,}\b")
+DE_IMPERATIVE_RE = re.compile(r"^(?:(?:Wenn|Falls|Bevor|Nachdem|Sobald)\b[^,]*,\s*)?[A-ZÄÖÜ]\w*en\s+Sie\b")
 
 
 @dataclass
@@ -178,15 +261,25 @@ def paragraphs(lines: list[tuple[int, str]]) -> list[tuple[int, str]]:
     return paras
 
 
-def sentences(paragraph: str) -> list[str]:
-    protected = re.sub(r"\b(e\.g|i\.e|etc|vs|Dr|Mr|Ms|No)\.", lambda m: m.group(0).replace(".", "§"), paragraph)
-    parts = re.split(r"(?<=[.!?:])\s+(?=[A-Z0-9\"'(])", protected)
-    return [p.replace("§", ".").strip() for p in parts if p.strip()]
+HOLD = "\x00"  # stands in for a period that does not end a sentence
 
 
-def count_words(sentence: str) -> int:
+def sentences(paragraph: str, lang: str = "en") -> list[str]:
+    protected = re.sub(r"\b(e\.g|i\.e|etc|vs|Dr|Mr|Ms|No)\.", lambda m: m.group(0).replace(".", HOLD), paragraph)
+    if lang == "de":
+        protected = ABBR_DE_RE.sub(lambda m: m.group(0).replace(".", HOLD), protected)
+        protected = ORDINAL_DE_RE.sub(lambda m: m.group(1) + HOLD, protected)
+    parts = re.split(r"(?<=[.!?:])\s+(?=[A-ZÄÖÜ0-9\"'(„«‚»])", protected)
+    return [p.replace(HOLD, ".").strip() for p in parts if p.strip()]
+
+
+def count_words(sentence: str, lang: str = "en") -> int:
     s = re.sub(r"\([^)]*\)", " PAREN ", sentence)         # parentheses = 1 word
-    s = re.sub(r"\"[^\"]*\"|“[^”]*”", " QUOTE ", s)        # quoted text = 1 word
+    s = re.sub(r"\"[^\"]*\"|“[^”]*”|„[^“”]*[“”]|«[^»]*»", " QUOTE ", s)  # quoted text = 1 word
+    if lang == "de":
+        s = ABBR_DE_RE.sub(" ABBR ", s)                      # "z. B." = 1 word
+        s = re.sub(r"\b\d{1,3}(?:[  .]\d{3})+(?:,\d+)?\b", "NUM", s)  # "1 000" = 1 word
+        s = re.sub(r"\b(\w+innen) und (\w+)\b", r"\1", s)     # Paarform = 1 word
     s = re.sub(r"\b(\d[\d.,]*)\s*(%|ms|s|kb|mb|gb|tb|px|kg|g|m|cm|mm|km|h|min)\b", r"\1", s, flags=re.I)
     return len(WORD_RE.findall(s))
 
@@ -203,22 +296,54 @@ def is_imperative(sentence: str) -> bool:
     }
 
 
-def check(text: str, strict: bool) -> list[Finding]:
+def sentence_limit(sentence: str, lang: str, strict: bool) -> tuple[int, str]:
+    """Return (word limit, kind). 80% mode allows longer descriptions joined by commas."""
+    instruction = DE_IMPERATIVE_RE.match(sentence) if lang == "de" else is_imperative(sentence)
+    if instruction:
+        return (20 if strict else 23), "instruction"
+    return (25 if strict else 35), "description"
+
+
+def check(text: str, strict: bool, lang: str = "en", voice: dict | None = None) -> list[Finding]:
+    """Without a voice profile: the general rules. With one: the writer's own phrases, words and
+    dashes are not tells, and rhythm is measured against the profile."""
+    if not voice:
+        return check_general(text, strict, lang)
+    lines = strip_markdown(text)
+    raw_by_no = dict(enumerate(text.splitlines(), 1))
+    general = check_general(mask_kept(text, voice), strict, lang)
+    own_rules = {"dash"} | ({"rhythm"} if voice.get("sentence_avg") else set())
+    kept = [x for x in general if x.rule not in own_rules]
+    return sorted(kept + voice_findings(text, lines, raw_by_no, lang, voice), key=lambda x: (x.line, x.rule))
+
+
+def check_general(text: str, strict: bool, lang: str = "en") -> list[Finding]:
     f: list[Finding] = []
     lines = strip_markdown(text)
     raw_by_no = dict(enumerate(text.splitlines(), 1))
 
     for start, para in paragraphs(lines):
-        sents = sentences(para)
+        sents = sentences(para, lang)
         if len(sents) > 6:
             f.append(Finding(start, "paragraph-length", f"{len(sents)} sentences in one paragraph (max 6)", para[:80]))
         for s in sents:
-            n = count_words(s)
-            limit = 20 if is_imperative(s) else 25
-            slack = 0 if strict else 3
-            if n > limit + slack:
-                kind = "instruction" if limit == 20 else "description"
+            n = count_words(s, lang)
+            limit, kind = sentence_limit(s, lang, strict)
+            if n > limit:
                 f.append(Finding(start, "sentence-length", f"{n} words ({kind} max {limit})", s[:100]))
+        if lang == "de":
+            openers = sum(bool(CONNECTIVES_DE.match(s)) for s in sents)
+            if openers >= 2:
+                f.append(Finding(start, "connective", f"{openers} sentences start with 'Darüber hinaus', 'Zusätzlich' or similar (§7)", para[:80]))
+            dashes = len(PAUSE_DASH_DE.findall(para))
+            if dashes >= 2:
+                f.append(Finding(start, "dash", f"{dashes} Gedankenstriche in one paragraph: keep one at most (§8)", para[:80]))
+
+    if not strict:
+        f.extend(check_rhythm(lines, raw_by_no, lang))
+
+    if lang == "de":
+        return sorted(f + check_lines_de(lines, raw_by_no, strict), key=lambda x: (x.line, x.rule))
 
     for no, line in lines:
         if not line.strip():
@@ -226,8 +351,8 @@ def check(text: str, strict: bool) -> list[Finding]:
         low = line.lower()
         if ";" in line:
             f.append(Finding(no, "semicolon", "semicolon: write two sentences or a list", line.strip()[:100]))
-        if "—" in line or " -- " in line:
-            f.append(Finding(no, "dash", "em dash as sentence glue: use a period or colon", line.strip()[:100]))
+        if "—" in line or " -- " in line or " – " in line:
+            f.append(Finding(no, "dash", "dash as sentence glue: use a period, comma or colon", line.strip()[:100]))
         for m in PASSIVE_RE.finditer(line):
             if m.group(1).lower() in NOT_PARTICIPLE:
                 continue
@@ -265,11 +390,152 @@ def check(text: str, strict: bool) -> list[Finding]:
     return f
 
 
-def summary(text: str) -> dict:
+LIST_OR_HEADING_RE = re.compile(r"^\s*(?:[-*+]|\d+[.)]|#+|\|)\s")
+
+
+def prose_average(lines: list[tuple[int, str]], raw_by_no: dict, lang: str) -> tuple[float, int, int | None]:
+    """Average words per sentence in prose. Lists, headings, tables, greetings and sign-offs do not count."""
+    counts, first = [], None
+    for start, para in paragraphs(lines):
+        if LIST_OR_HEADING_RE.match(raw_by_no.get(start, "")):
+            continue
+        sents = sentences(para, lang)
+        if len(sents) == 1 and count_words(sents[0], lang) <= 4:
+            continue
+        for s in sents:
+            counts.append(count_words(s, lang))
+            first = start if first is None else first
+    return (sum(counts) / len(counts) if counts else 0.0), len(counts), first
+
+
+# --- Voice profile (references/voice-profile.md) ---
+
+VOICE_DIR = os.path.expanduser("~/.claude/voice")
+DASHES = {" - ": r"(?<=[^\s\d])\s-\s(?=[^\s\d])", " – ": r"(?<=[^\s\d])\s–\s(?=[^\s\d])", "—": r"—", " -- ": r"\s--\s"}
+
+
+def load_voice(path: str) -> dict:
+    """Read the `overrides:` block from a profile's front matter. No YAML dependency: flat keys,
+    numbers, quoted strings and [lists] only."""
+    text = open(path, encoding="utf-8").read()
+    m = re.match(r"---\s*\n(.*?)\n---", text, re.S)
+    block = re.search(r"^overrides:[^\n]*\n((?:[ \t]+.*\n?)*)", m.group(1) + "\n", re.M) if m else None
+    voice: dict = {"path": path}
+    for line in (block.group(1).splitlines() if block else []):
+        km = re.match(r"\s+(\w+):\s*(.*?)\s*(?:#.*)?$", line)
+        if not km:
+            continue
+        key, raw = km.groups()
+        if raw.startswith("["):
+            items = re.findall(r'"([^"]*)"|\'([^\']*)\'|([^,\[\]\s][^,\[\]]*)', raw)
+            val = [next(x for x in it if x).strip() for it in items]
+            val = [float(v) if re.fullmatch(r"\d+(?:\.\d+)?", v) else v for v in val]
+        elif re.fullmatch(r"\d+(?:\.\d+)?", raw):
+            val = float(raw)
+        else:
+            val = raw.strip("\"'")
+        voice[key] = val
+    return voice
+
+
+def find_voice(arg: str, lang: str) -> dict | None:
+    if arg == "none":
+        return None
+    path = os.path.join(VOICE_DIR, f"{lang}.md") if arg == "auto" else arg
+    return load_voice(path) if os.path.isfile(path) else None
+
+
+def mask_kept(text: str, voice: dict) -> str:
+    """Hide the writer's own phrases and words from the tell checks. Keeps the word count."""
+    for phrase in sorted(voice.get("keep_phrases", []) + voice.get("keep_words", []), key=len, reverse=True):
+        text = re.sub(rf"(?<!\w){re.escape(phrase)}(?!\w)",
+                      lambda m: " ".join("qq" for _ in m.group(0).split()), text, flags=re.I)
+    return text
+
+
+def voice_findings(text: str, lines: list[tuple[int, str]], raw_by_no: dict, lang: str, voice: dict) -> list[Finding]:
+    f: list[Finding] = []
+    own = voice.get("dash_char")
+    words = max(len(WORD_RE.findall(text)), 1)
+    total = sum(len(re.findall(p, text)) for p in DASHES.values())
+    target = voice.get("dash_per_1k")
+    if target and (words >= 300 or total >= 3) and total * 1000 / words > 1.5 * target:
+        f.append(Finding(1, "dash", f"{total * 1000 / words:.1f} dashes per 1,000 words: your profile writes about {target:g} (§8)", ""))
+    if own:
+        for no, line in lines:
+            for ch, p in DASHES.items():
+                if ch != own and re.search(p, line):
+                    f.append(Finding(no, "dash", f"dash '{ch.strip()}': your profile writes '{own.strip()}' (§8)", line.strip()[:100]))
+    bounds = voice.get("sentence_avg")
+    if isinstance(bounds, list) and len(bounds) == 2:
+        avg, n, first = prose_average(lines, raw_by_no, lang)
+        lo, hi = bounds
+        if n >= 5 and avg < lo - 3:
+            f.append(Finding(first, "rhythm", f"prose averages {avg:.1f} words per sentence: your profile writes {lo:g} to {hi:g}, so join sentences that share a thought", ""))
+        elif n >= 5 and avg > hi + 5:
+            f.append(Finding(first, "rhythm", f"prose averages {avg:.1f} words per sentence: your profile writes {lo:g} to {hi:g}, so split the longest sentences", ""))
+    return f
+
+
+def check_rhythm(lines: list[tuple[int, str]], raw_by_no: dict, lang: str) -> list[Finding]:
+    """80% mode: flag prose that is a row of short sentences. Lists, headings and tables do not count."""
+    counts, first = [], None
+    for start, para in paragraphs(lines):
+        if LIST_OR_HEADING_RE.match(raw_by_no.get(start, "")):
+            continue
+        sents = sentences(para, lang)
+        if len(sents) == 1 and count_words(sents[0], lang) <= 4:
+            continue  # greeting, sign-off or label
+        for s in sents:
+            counts.append(count_words(s, lang))
+            first = start if first is None else first
+    if len(counts) >= 5:
+        avg = sum(counts) / len(counts)
+        if avg < 12:
+            return [Finding(first, "rhythm", f"prose averages {avg:.1f} words per sentence: join sentences that share a thought (aim for 15 to 20)", "")]
+    return []
+
+
+def check_lines_de(lines: list[tuple[int, str]], raw_by_no: dict, strict: bool) -> list[Finding]:
+    f: list[Finding] = []
+    for no, line in lines:
+        if not line.strip():
+            continue
+        low = line.lower()
+        excerpt = line.strip()[:100]
+        if ";" in line:
+            f.append(Finding(no, "semicolon", "Semikolon: zwei Sätze oder eine Liste (S15)", excerpt))
+        if "—" in line or " -- " in line:
+            f.append(Finding(no, "dash", "em dash is not a German dash: use ' – ' or a comma (§8)", excerpt))
+        raw = raw_by_no.get(no, "")
+        if re.search(r"(?:^|[\s(])“\w|\w”", raw):
+            f.append(Finding(no, "quotes", "English quotes in German text: use „…“ (§21)", excerpt))
+        elif re.search(r"(?:^|\s)\"[^\"`]+\"", line):
+            f.append(Finding(no, "quotes", "straight quotes in German prose: use „…“ (§21, weak alone)", excerpt))
+        for m in LONG_COMPOUND_DE.finditer(line):
+            f.append(Finding(no, "compound", f"long compound '{m.group(0)}': a hyphen can help (S12)", excerpt))
+        for pat, rule, msg in TELLS_DE:
+            if re.search(pat, line, re.I):
+                f.append(Finding(no, rule, msg, excerpt))
+        for word, alt in SWAPS_DE.items():
+            if re.search(rf"(?<![\w-]){re.escape(word)}\w*", low):
+                f.append(Finding(no, "word", f"'{word}' -> {alt}", excerpt))
+        if strict:
+            if re.search(r"\b\w+['’]s\b", line):
+                f.append(Finding(no, "contraction", "spoken form with apostrophe (gibt's): not in strict mode (S15)", excerpt))
+            if re.search(r"\bz\.\s?B\.", line):
+                f.append(Finding(no, "abbreviation", "'z. B.' -> 'zum Beispiel' in strict mode (S15)", excerpt))
+            if re.search(r"\b(?:muss|müssen|musst)\s+(?:\S+\s+)?nicht\b", low):
+                f.append(Finding(no, "modal", "'muss nicht' = not required, not a ban ('darf nicht'): check the meaning (S9)", excerpt))
+    return f
+
+
+def summary(text: str, lang: str = "en") -> dict:
     paras = paragraphs(strip_markdown(text))
-    sents = [s for _, p in paras for s in sentences(p)]
-    counts = [count_words(s) for s in sents] or [0]
+    sents = [s for _, p in paras for s in sentences(p, lang)]
+    counts = [count_words(s, lang) for s in sents] or [0]
     return {
+        "lang": lang,
         "sentences": len(sents),
         "avg_words_per_sentence": round(sum(counts) / max(len(sents), 1), 1),
         "max_words_per_sentence": max(counts),
@@ -278,9 +544,12 @@ def summary(text: str) -> dict:
 
 
 def main(argv: list[str]) -> int:
-    ap = argparse.ArgumentParser(description="Heuristic linter for AI tells and STE-style English (not a compliance checker, not an AI detector).")
+    ap = argparse.ArgumentParser(description="Heuristic linter for AI tells and STE-style English or German (not a compliance checker, not an AI detector).")
     ap.add_argument("files", nargs="+", help="files to check, or - for stdin")
     ap.add_argument("--strict", action="store_true", help="strict mode: exact limits, more word rules")
+    ap.add_argument("--lang", choices=["auto", "en", "de"], default="auto", help="text language (default: auto, per file)")
+    ap.add_argument("--voice", default="auto", metavar="PATH|auto|none",
+                    help="voice profile: auto uses ~/.claude/voice/<lang>.md if it exists (default), none ignores it")
     ap.add_argument("--json", action="store_true", help="output JSON")
     args = ap.parse_args(argv)
 
@@ -292,13 +561,17 @@ def main(argv: list[str]) -> int:
         else:
             with open(path, encoding="utf-8") as fh:
                 text = fh.read()
-        findings = check(text, args.strict)
+        lang = detect_language(text) if args.lang == "auto" else args.lang
+        voice = find_voice(args.voice, lang)
+        findings = check(text, args.strict, lang, voice)
         total += len(findings)
-        stats = summary(text)
+        stats = summary(text, lang)
+        stats["voice"] = voice["path"] if voice else None
         if args.json:
             report.append({"file": path, "stats": stats, "findings": [asdict(x) for x in findings]})
             continue
-        print(f"{path}: {len(findings)} finding(s) | {stats['sentences']} sentences, "
+        vtag = f" | voice {os.path.basename(voice['path'])}" if voice else ""
+        print(f"{path}: {len(findings)} finding(s) | lang {lang}{vtag} | {stats['sentences']} sentences, "
               f"avg {stats['avg_words_per_sentence']} words, max {stats['max_words_per_sentence']}")
         for x in findings:
             print(f"  {x.line:>4}  {x.rule:<16} {x.message}")

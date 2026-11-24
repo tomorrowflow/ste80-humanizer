@@ -10,9 +10,9 @@
 
 The chatbot is gone, but the text is still heavy: a passive actor, a "will" where nothing is in the future, a vague "misconfigured", and a cause and an instruction in one sentence.
 
-**After Pass 2 (STE80 structure):** S6 active voice, S7 simple tense, S1 one idea per sentence, S10 plain words, S14 instruction separate from description.
-> A liveness probe tells the kubelet if a container is healthy. If the probe fails, the kubelet restarts the container. This keeps the application available.
+**After Pass 2 (STE80 structure):** S6 active voice, S7 simple tense, S1 one main idea per sentence, S10 plain words, S14 instruction separate from description.
+> A liveness probe tells the kubelet if a container is healthy. If the probe fails, the kubelet restarts the container, which keeps the application available.
 >
-> A bad probe can also cause many restarts. For example, a timeout that is too short makes healthy containers fail the probe. To prevent this, set `initialDelaySeconds` and `failureThreshold` to values that fit your application.
+> A bad probe can also cause many restarts, for example when a timeout that is too short makes healthy containers fail the probe. To prevent this, set `initialDelaySeconds` and `failureThreshold` to values that fit your application.
 
 Every fact stayed: the kubelet, the restart, availability, cascading restarts and both parameters. "Could potentially" became "can", not "will".

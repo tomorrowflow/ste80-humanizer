@@ -28,19 +28,26 @@ The long-form numbers here (1 to 23) are finer than the S-rules in SKILL.md. The
 
 ### 1. One idea per sentence
 
-**Rule:** A sentence carries one subject and one main statement. A procedure step carries one action, unless two actions happen at the same time.
+**Rule:** A sentence carries one main statement. A procedure step carries one action, unless two actions happen at the same time.
+
+In 80% mode, the reason, condition or result of the statement may stay in the same sentence, as a clause with "because", "when", "if", "which" or "so that". Join two or three linked clauses with commas and conjunctions. Split only ideas that do not depend on each other. A row of short sentences that split one thought reads like a robot.
 
 **Before:**
 > The configuration file, which is loaded at startup and can be overridden by environment variables, controls the cache size as well as the timeout, and should be kept in version control.
 
-**After:**
+**After (80%):**
+> The configuration file controls the cache size and the timeout, and the application reads it when it starts. Environment variables can override the values in the file. Keep the file in version control.
+
+**After (strict):**
 > The configuration file controls the cache size and the timeout. The application reads this file when it starts. Environment variables can override the values in the file. Keep the file in version control.
+
+In English, join two main clauses with a conjunction ("and", "but", "so"), not with a bare comma. German allows the comma (see `german.md`).
 
 ### 2. Keep sentences short
 
-**Rule:** Instructions: 20 words or fewer. Descriptions: 25 words or fewer. Aim for an average of about 15. A number with its unit, a code identifier, a name or a quoted string counts as one word.
+**Rule:** Instructions: 20 words or fewer. Descriptions: 25 words or fewer. A number with its unit, a code identifier, a name or a quoted string counts as one word.
 
-In 80% mode, a sentence may go a few words over the limit when splitting it would separate a condition from its result. Never go over in strict mode.
+In 80% mode, descriptions average 15 to 25 words and may reach about 35 when commas and clauses carry the structure. Instructions stay at about 20. Vary the length: a short sentence after two long ones gives emphasis. Never go over the limits in strict mode.
 
 ### 3. Put the condition first
 
@@ -70,7 +77,7 @@ In 80% mode, terse fragments are acceptable in tables, headings and short UI lab
 
 ### 6. Link related sentences
 
-**Rule:** Short sentences need clear joints. Use simple connectors: "but", "because", "thus", "as a result", "then", "after", "before", "if", "when". Do not use "however", "furthermore", "moreover", "additionally".
+**Rule:** Sentences need clear joints, inside a sentence and between sentences. Use simple connectors: "but", "because", "thus", "as a result", "then", "after", "before", "if", "when". Do not use "however", "furthermore", "moreover", "additionally".
 
 ## B. Verbs
 
@@ -214,5 +221,7 @@ Be careful here. If the source is uncertain, keep the uncertainty. "This might f
 - **Length limits.** A small overrun is fine if the split would hurt meaning.
 - **Tone.** Warmth is allowed. A short greeting in an email or a "thanks" stays.
 
-80% mode never relaxes these: one idea per sentence, active voice, simple tenses, no filler, one term per thing, all facts kept.
+- **Sentence length.** Connected sentences of up to about 35 words, with the reason, condition or result in the same sentence.
+
+80% mode never relaxes these: one main idea per sentence, active voice, simple tenses, no filler, one term per thing, all facts kept.
 
